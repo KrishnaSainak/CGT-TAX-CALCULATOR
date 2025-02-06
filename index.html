@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tax Calculator</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+</head>
+<body>     
+  <div class = "container bg-light">
+    <div class = "d-flex flex-row justify-content-center">
+    <div class ="calculator-container p-2 rounded bg-info">
+        <h1 class = "text-light font-weight-bolder">Capital Gain Tax Calculator</h1>
+       <form> <div class = "m-3">
+            <label class = "property-capital text-light font-weight-bold">Property/Asset Sold in India?<span class = "text-danger">**</span></label>
+            <select name = "property-capital" id = "propertyCapital" onchange="checker(event)"  class = "m-1">
+                <option value="yes" selected>Yes</option>
+                <option value="no">No</option>
+            </select>
+        </div>
+        <hr class="hr-line bg-light"/>
+        <div class = "intro-card m-3 justify-content-start">
+            <label for = "asset" class = "text-light font-weight-bold" > Select type Of asset<span class="text-danger">**</span></label>
+            <select name ="asset" id = "asset" onchange="evalution(event)">
+                <option value="House/flat" selected>House/flat/Site</option>
+                <option value="agriculture-land">Agriculter Land</option>
+                <option value="Which means Shares and Other Assets">Shares and other assets</option>
+            </select>
+        </div>
+        <div>
+            <div class = "sold-container m-3" >
+                <label class = " text-light font-weight-bolder label-title" for ="soldDate,soldPrize">Sale Consideration And Sale Date<span class="text-danger">**</span> </label>
+                <div class ="d-flex flex-row">
+                    <input type = "date" id ="soldDate" class="m-1" onchange="handler1(event)" placeholder="DD/MMM/YYYY"/>
+                    <input type = "number" id ="soldPrize" class="m-1 cost-prize-input" placeholder="Enter Sale Consideration"/>
+                </div>
+                <div class = "d-flex flex-row justify-content-center">
+                    <p class = "text-light font-weight-bold" id = "indexValue1"></p>
+                </div>
+                <div class = "stamp-value">
+                    <label for="stampDutyValue" class = "text-light font-weight-bold">Stamp-Duty-Value<span class="text-danger">**</span></label>
+                    <input type="number" id = "stampDutyValue" placeholder = "Enter Stamp Duty Value"/>
+                </div>
+                
+                </div>
+                <div class = "cost-container order-2 m-3">
+                    <label class = "text-light font-weight-bolder label-title" for ="dateFixer,costPrize">Purchase price/Cost of Acquisition And Purchase Date<span class="text-danger">**</span> </label>
+                    <div class ="d-flex flex-row">
+                        <input type = "date" id ="dateFixer" class="m-1"  onchange="handler(event)"/>
+                        <input type = "number" id ="costPrize" class="m-1 cost-prize-input" placeholder = "Enter the Cost of Acquisition" />
+                    </div>
+                    <div class = "d-flex flex-row justify-content-center">
+                    <p class = "index-text text-light font-weight-bold" id = "indexValue"></p>
+                </div>
+                <div class = "d-flex flex-row justify-content-center">
+                <div class="alert alert-primary alert-dismissible fade show" role="alert" id = "alertYear" style="display:none;">
+                    <strong id = "taxValue"></strong>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    </button>
+                  </div></div>
+      
+              </div>
+                </div>
+                <hr class = "bg-light"/>
+        
+    <div class = "stamp-value m-3"> 
+        <label for="brokerValue" class = "text-light font-weight-bold">Broker Fee/ Expensese for Transfer</label>
+        <input type="number" id = "brokerValue" placeholder="Enter Brokerage Value"/>
+    </div>
+        <div class ="construction-cotnainer m-3">
+        <label class = "construction text-light font-weight-bold" for = "costConstruction"> Cost of Construction with date Or Else Enter 0 </label>
+        <div class="d-flex flex-row">
+            <input type="date" id="constructionDate" class = "m-1"/>
+        <input type="number" id = "costConstruction" class = "m-1" placeholder = "Enter the cost of construction"/>
+    </div>    
+    </div>
+        <div class ="improvement-cotnainer m-3">
+            <label class = "improvement text-light font-weight-bold" for = "costConstruction"> Cost of Improvement with date(if any) Or Enter 0 </label>
+            <div class = "d-flex flex-row">
+            <input type="date" id="improvementDate" class ="m-1"/>
+            <input type="number" id = "costImprovement" class = "m-1" placeholder="Enter the Improvement Cost"/>
+        </div>
+        <div>
+            <label class = "investement text-light font-weight-bold" for ="investment">Investment in the asset u/s (SEC 54/54F/54EC) </label>
+            <input type="number" id = "investment" placeholder="Enter the Investment cost" class = "m-1"/>
+        </div>
+        </div>
+        <div class = "m-3">
+            <label class = "property-capital text-light font-weight-bold">Have you invested the Gain in India ?</label>
+            <select name = "property-capital" id = "propertyCapital" onchange="invested(event)"  class = "m-1">
+                <option value="yes" selected>Yes</option>
+                <option value="no" >No</option>
+            </select>
+           <p class = "text-light font-weight-bold" id = "investedValue"></p>
+        </div>
+        <button class = "btn btn-primary" type = "submit" onclick="submission()"> Calculate</button>
+    </form>
+</div>          
+    </div>
+    </div>
+    
+<script src="script.js"></script>
+</body>
+</html>
