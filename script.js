@@ -29,11 +29,10 @@ function evalution(e) {
 
 function getStampValue(e) {
     let soldValueE = Number(e.target.value) || 0;
-    let percent = 9 / 100;
-    let finalV = Math.round(soldValueE * percent);
+    let finalV = Math.round(soldValueE);
 
     stampPVEle.style.display = soldValueE === 0 ? "none" : "block";
-    stampPVEle.textContent = `This is the stamp duty value you need to pay: ₹${finalV}`;
+    stampPVEle.textContent = `This is the stamp duty value: ₹${finalV} paying`;
 }
 
 function handler1(e) {
@@ -107,70 +106,121 @@ function invested(e) {
 }
 
 function submission(event) {
-    event.preventDefault(); // Prevents form submission & page reload
+    event.preventDefault(); // Prevent form submission & page reload
 
     // Get input values
-    let soldInt = parseInt(document.getElementById("soldPrize").value) || 0;
-    let costInt = parseInt(document.getElementById("costPrize").value) || 0;
-    let stampInt = parseInt(document.getElementById("stampDutyValue").value) || 0;
-    let constInt = parseInt(document.getElementById("costConstruction").value) || 0;
-    let impInt = parseInt(document.getElementById("costImprovement").value) || 0;
-    let brokerFee = parseInt(document.getElementById("brokerValue").value) || 0;
-    let investmentAmount = parseInt(document.getElementById("investment").value) || 0;
+    let soldInt = parseFloat(document.getElementById("soldPrize").value) || 0;
+    let costInt = parseFloat(document.getElementById("costPrize").value) || 0;
+    let stampInt = parseFloat(document.getElementById("stampDutyValue").value) || 0;
+    let constInt = parseFloat(document.getElementById("costConstruction").value) || 0;
+    let impInt = parseFloat(document.getElementById("costImprovement").value) || 0;
+    let brokerFee = parseFloat(document.getElementById("brokerValue").value) || 0;
+    let investmentAmount = parseFloat(document.getElementById("investment").value) || 0;
     let saleYearInput = document.getElementById("soldDate").value;
+    let purchaseYearInput = document.getElementById("dateFixer").value;
 
     // Format value in Indian Rupees
     function formatCurrency(value) {
         return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
     }
 
-    if (!saleYearInput) {
-        alert("Please enter the Sale Date!");
+    if (!saleYearInput || !purchaseYearInput) {
+        alert("Please enter both Sale Date and Purchase Date!");
         return;
     }
 
+    // Convert dates to JavaScript Date objects
+    let saleDate = new Date(saleYearInput);
+    let purchaseDate = new Date(purchaseYearInput);
+
+    // Determine if holding period is less than 2 years
+    let holdingPeriod = (saleDate - purchaseDate) / (1000 * 60 * 60 * 24 * 365); // Convert milliseconds to years
+    let isShortTerm = holdingPeriod < 2;
+
+    // Use the maximum of soldInt and stampInt
+    let mainSoldInt = Math.max(soldInt, stampInt);
+
     // Calculate Net Sale Consideration
-    let netSale = soldInt - stampInt - brokerFee;
+    let netSale = mainSoldInt - brokerFee;
     let totalGain = netSale - costInt - constInt - impInt;
-    
+
     if (totalGain <= 0) {
         alert("No taxable capital gain.");
         return;
     }
 
-    // Apply 20% and 12.5% Tax Calculation
-    let taxValue1 = Math.max(0, parseInt(0.20 * totalGain)); // 20% tax
-    let taxValue2 = Math.max(0, parseInt(0.125 * totalGain)); // 12.5% tax
+    // Apply tax calculations
+    let taxValue1 = totalGain * 0.20; // 20% tax
+    let taxValue2 = totalGain * 0.125; // 12.5% tax
+    let shortTermTax = totalGain * 0.312; // 31.2% tax for short-term gain
 
-    // Determine tax rate based on sale date
-    let saleDate = new Date(saleYearInput);
+    // Determine tax rate based on holding period and sale date
     let referenceDate = new Date("2024-07-23");
-    let applicableTax = saleDate > referenceDate ? taxValue2 : taxValue1;
-    let taxRate = saleDate > referenceDate ? "12.5%" : "20%";
+    let applicableTax, taxRate;
+
+    if (isShortTerm) {
+        applicableTax = shortTermTax;
+        taxRate = "31.2% (Short-Term Tax)";
+    } else {
+        applicableTax = saleDate > referenceDate ? taxValue2 : taxValue1;
+        taxRate = saleDate > referenceDate ? "12.5%" : "20%";
+    }
 
     // Section 54 / 54F exemption logic
     let taxableAfterInvestment = Math.max(0, totalGain - investmentAmount);
-    let taxAfter54 = saleDate > referenceDate ? taxableAfterInvestment * 0.125 : taxableAfterInvestment * 0.20;
-    let exemptionMessage = investmentAmount >= totalGain ? 
-        "Full Exemption under Sec 54/54F - No Tax Payable" : 
+    let taxAfter54 = isShortTerm ? taxableAfterInvestment * 0.312 : taxableAfterInvestment * (saleDate > referenceDate ? 0.125 : 0.20);
+    let exemptionMessage = investmentAmount >= totalGain ?
+        "Full Exemption under Sec 54/54F - No Tax Payable" :
         `Partial Tax Payable after Sec 54/54F: ${formatCurrency(taxAfter54)}`;
 
     // Get modal body element
     let modalBody = document.getElementById("modalBody");
 
-    // Display results in the modal
-    modalBody.innerHTML = `
-        <p><strong>Capital Gain:</strong> ${formatCurrency(totalGain)}</p>
-        <p><strong>Tax at 20%:</strong> ${formatCurrency(taxValue1)}</p>
-        <p><strong>Tax at 12.5% (If Sale is After 23rd July 2024):</strong> ${formatCurrency(taxValue2)}</p>
-        <p><strong>Suggested Tax (Lowest Option):</strong> ${formatCurrency(applicableTax)} (${taxRate})</p>
-        <p><strong>Section 54 / 54F Consideration: If you Invest in India the Tax will be "nill"OR If not you need pay the tax fully as mentioned here 👉 </strong> ${exemptionMessage}</p>
-    `;
+    // Create table structure
+    let tableHTML = `
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Main Sale Value</strong></td><td>${formatCurrency(mainSoldInt)}</td></tr>
+                <tr><td>Broker Fee</td><td>${formatCurrency(brokerFee)}</td></tr>
+                <tr><td><strong>Net Sale Consideration</strong></td><td>${formatCurrency(netSale)}</td></tr>
+                <tr><td>Cost of Purchase</td><td>${formatCurrency(costInt)}</td></tr>
+                <tr><td>Cost of Construction</td><td>${formatCurrency(constInt)}</td></tr>
+                <tr><td>Cost of Improvement</td><td>${formatCurrency(impInt)}</td></tr>
+                <tr><td><strong>Net Capital Gain</strong></td><td>${formatCurrency(totalGain)}</td></tr>`;
+
+    // If it's long-term capital gain, display 20% and 12.5% tax
+    if (!isShortTerm) {
+        tableHTML += `
+                <tr><td>Tax at 20%</td><td>${formatCurrency(taxValue1)}</td></tr>
+                <tr><td>Tax at 12.5% (If Sale is After 23rd July 2024)</td><td>${formatCurrency(taxValue2)}</td></tr>`;
+    } else {
+        // If it's short-term capital gain, show 31.2% tax only
+        tableHTML += `
+                <tr><td><strong>Short-Term Tax (31.2%)</strong></td><td>${formatCurrency(shortTermTax)}</td></tr>`;
+    }
+
+    // Add final tax section
+    tableHTML += `
+                <tr><td><strong>Suggested Tax (Lowest Option)</strong></td><td>${formatCurrency(applicableTax)} (${taxRate})</td></tr>
+                <tr><td>Investment in India for Sec 54/54F</td><td>${formatCurrency(investmentAmount)}</td></tr>
+                <tr><td><strong>Final Tax Payable</strong></td><td>${exemptionMessage}</td></tr>
+            </tbody>
+        </table>`;
+
+    // Insert table into modal
+    modalBody.innerHTML = tableHTML;
 
     // Show the modal
     let modal = new bootstrap.Modal(document.getElementById("resultModal"));
     modal.show();
 }
+
 
 
 
